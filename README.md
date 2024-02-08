@@ -43,6 +43,13 @@ anything else. If you need a small helper class, make it a `private static` inne
 3. Each example should start with a comment with a large header (`// # This is title text`), and a summary explaining what the example
 is about, before the `package` declaration.
 
+## Running Visualize Point Tree on Specific Shard Path 
+1. SSH into cluster and git clone repository into there
+2. Run `ps aux | grep java` and grab the path that OpenSearch is using
+3. Export the same path to `JAVA_HOME` but omit the `/bin/java`.
+4. Run `./gradlew build` to compile files
+5. Run `./gradlew run -PclassToExecute=example.points.VisualizePointTree` to run the program.
+
 ## License
 
 All code in this repository is licensed under the Apache License, Version 2.0. See the LICENSE file in the root of the repository for the

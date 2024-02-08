@@ -21,6 +21,7 @@ import example.basic.SimpleSearch;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.IntField;
 import org.apache.lucene.document.IntPoint;
+import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.document.KeywordField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -35,6 +36,7 @@ import org.apache.lucene.store.FSDirectory;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 
@@ -53,76 +55,43 @@ public class VisualizePointTree {
         //
         String indent = " ".repeat(level);
         System.out.println(indent + level + indent +
-                " [" + IntPoint.decodeDimension(pointTree.getMinPackedValue(), 0) + "," +
-                IntPoint.decodeDimension(pointTree.getMaxPackedValue(), 0) + "] - " +
+                " [" + LongPoint.decodeDimension(pointTree.getMinPackedValue(), 0) + "," +
+                LongPoint.decodeDimension(pointTree.getMaxPackedValue(), 0) + "] - " +
                 pointTree.size());
         // Next we recurse into the first child, if present. The recursive call will also visit the siblings (see a few
         // lines below). After visiting the child we need to return to this node before visiting our own siblings.
         //
-        if (pointTree.moveToChild()) {
-            printTree(pointTree, level + 1);
-            pointTree.moveToParent();
-        }
-        // Visit the current node's siblings.
-        //
-        while (pointTree.moveToSibling()) {
-            printTree(pointTree, level);
-        }
+        // if (pointTree.moveToChild()) {
+        //     printTree(pointTree, level + 1);
+        //     pointTree.moveToParent();
+        // }
+        // // Visit the current node's siblings.
+        // //
+        // while (pointTree.moveToSibling()) {
+        //     printTree(pointTree, level);
+        // }
     }
 
     // ## The worked example
     //
     public static void main(String[] args) throws IOException {
         // Create a temporary directory to hold the index, then create the Lucene Directory and IndexWriter.
-        Path tmpDir = Files.createTempDirectory(SimpleSearch.class.getSimpleName());
-        try (Directory directory = FSDirectory.open(tmpDir);
-             IndexWriter writer = new IndexWriter(directory, new IndexWriterConfig())) {
-
-            // ### Index documents
-            //
-            // We will generate 20,000 documents, distributed over 10,000 integer point values.
-            //
-            // For the `val` field, we use type `IntField`. This is a convenient field type that tells Lucene to store
-            // the field as a doc value and as a point. Note that this field **does not** get indexed to terms.
-            //
-            // *Optional exercise:* Try modifying these to output the same `val` value for every document.
-            for (int i = 0; i < 10_000; i++) {
-                writer.addDocument(List.of(new KeywordField("id", "first " + i, Field.Store.NO),
-                        new IntField("val", i, Field.Store.NO)));
-                writer.addDocument(List.of(new KeywordField("id", "second " + i, Field.Store.NO),
-                        new IntField("val", i, Field.Store.NO)));
-                //
-                // *Optional exercise:* Uncomment this flush block if you want to write the documents to 5 segments:
-                //
-                /*
-                if ((i + 1) % 2000 == 0) {
-                    writer.flush();
-                }
-                */
-            }
-            // ### Reading the point tree
-            //
-            // Now we open a reader from the writer and iterate over the segments. (If the `flush` block above was left
-            // commented out, we have a single segment with all points. Otherwise, each segment has its own points.)
-            //
-            try (IndexReader reader = DirectoryReader.open(writer)) {
+        Path tmpDir = Paths.get("/home", "ec2-user", "opensearch", "data", "nodes", "0", "indices", "jykcFJs7R-Wc2G-EOG4jRA", "0", "index");
+        try (Directory directory = FSDirectory.open(tmpDir);) {
+            try (IndexReader reader = DirectoryReader.open(directory)) {
                 for (LeafReaderContext lrc : reader.leaves()) {
                     LeafReader lr = lrc.reader();
                     System.out.println("Tree for segment " + lrc.ord);
-                    PointValues.PointTree pointTree = lr.getPointValues("val").getPointTree();
+                    PointValues.PointTree pointTree = lr.getPointValues("@timestamp").getPointTree();
                     printTree(pointTree, 0);
                 }
             }
         } finally {
-            for (String indexFile : FSDirectory.listAll(tmpDir)) {
-                Files.deleteIfExists(tmpDir.resolve(indexFile));
-            }
-            // Then we delete the directory itself.
-            Files.deleteIfExists(tmpDir);
-        }
+            System.out.println("Finished printing segments");
     }
 
 
+    }
 }
 // ## Program output
 //
