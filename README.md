@@ -50,6 +50,23 @@ is about, before the `package` declaration.
 4. Run `./gradlew build` to compile files
 5. Run `./gradlew run -PclassToExecute=example.points.VisualizePointTree` to run the program.
 
+Example Output:
+```
+> Task :run
+Tree for segment 0
+0 [897249601000,897854400000] - 181463624
+Finished printing segments
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.5/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 874ms
+2 actionable tasks: 1 executed, 1 up-to-date
+```
+
 ## License
 
 All code in this repository is licensed under the Apache License, Version 2.0. See the LICENSE file in the root of the repository for the
